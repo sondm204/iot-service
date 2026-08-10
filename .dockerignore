@@ -1,0 +1,10 @@
+.git
+.gradle
+.idea
+.agents
+build
+out
+*.iml
+Dockerfile
+docker-compose.yml
+HELP.md

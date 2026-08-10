@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: iot
+
+server:
+  port: 8080
+
+mqtt:
+  broker-url: tcp://192.168.2.6:1883
+  client-id: iot-server
