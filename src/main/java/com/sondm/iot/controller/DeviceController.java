@@ -30,4 +30,10 @@ public class DeviceController {
 
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/{deviceId}/ir")
+    public ResponseEntity<DeviceResponse> controlTV(@PathVariable String deviceId) {
+        DeviceResponse response = deviceService.controlTV(deviceId);
+        return ResponseEntity.ok(response);
+    }
 }

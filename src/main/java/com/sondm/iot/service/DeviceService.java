@@ -33,4 +33,24 @@ public class DeviceService {
             topic
         );
     }
+
+    public DeviceResponse controlTV(String deviceId) {
+        String topic = String.format(
+            "devices/%s/commands/ir",
+            deviceId
+        );
+
+        mqttGateway.publish(
+            "POWER",
+            topic,
+            1
+        );
+
+        return new DeviceResponse(
+            true,
+            deviceId,
+            "POWER",
+            topic
+        );
+    }
 }
