@@ -1,5 +1,6 @@
 package com.sondm.iot.config;
 
+import com.sondm.iot.service.DeviceEventStreamService;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,9 @@ public class MqttConfig {
 
     private static final String LIGHT_STATUS_TOPIC =
         "devices/esp32-01/status/light";
+
+    private static final String DEVICE_EVENTS_TOPIC =
+        "devices/esp32-01/events";
 
     @Bean
     public MqttPahoClientFactory mqttClientFactory(
@@ -57,6 +61,11 @@ public class MqttConfig {
 
     @Bean
     public MessageChannel mqttInboundChannel() {
+        return new DirectChannel();
+    }
+
+    @Bean
+    public MessageChannel mqttDeviceEventsInboundChannel() {
         return new DirectChannel();
     }
 
@@ -98,6 +107,24 @@ public class MqttConfig {
     }
 
     @Bean
+    public MqttPahoMessageDrivenChannelAdapter mqttDeviceEventsInboundAdapter(
+        MqttPahoClientFactory clientFactory,
+        MqttProperties properties
+    ) {
+        MqttPahoMessageDrivenChannelAdapter adapter =
+            new MqttPahoMessageDrivenChannelAdapter(
+                properties.clientId() + "-device-events",
+                clientFactory,
+                DEVICE_EVENTS_TOPIC
+            );
+
+        adapter.setQos(1);
+        adapter.setOutputChannel(mqttDeviceEventsInboundChannel());
+
+        return adapter;
+    }
+
+    @Bean
     @ServiceActivator(inputChannel = "mqttInboundChannel")
     public MessageHandler mqttLightStatusHandler() {
         return message -> {
@@ -111,6 +138,27 @@ public class MqttConfig {
                 topic,
                 lightState
             );
+        };
+    }
+
+    @Bean
+    @ServiceActivator(inputChannel = "mqttDeviceEventsInboundChannel")
+    public MessageHandler mqttDeviceEventsHandler(
+        DeviceEventStreamService deviceEventStreamService
+    ) {
+        return message -> {
+            String topic = String.valueOf(
+                message.getHeaders().get(MqttHeaders.RECEIVED_TOPIC)
+            );
+            String event = String.valueOf(message.getPayload());
+
+            log.info(
+                "Received device event from topic [{}]: {}",
+                topic,
+                event
+            );
+
+            deviceEventStreamService.publish(event);
         };
     }
 }
