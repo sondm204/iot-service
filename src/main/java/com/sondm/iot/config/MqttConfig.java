@@ -26,9 +26,6 @@ public class MqttConfig {
     private static final Logger log =
         LoggerFactory.getLogger(MqttConfig.class);
 
-    private static final String LIGHT_STATUS_TOPIC =
-        "devices/esp32-01/status/light";
-
     private static final String DEVICE_EVENTS_TOPIC =
         "devices/esp32-01/events";
 
@@ -60,11 +57,6 @@ public class MqttConfig {
     }
 
     @Bean
-    public MessageChannel mqttInboundChannel() {
-        return new DirectChannel();
-    }
-
-    @Bean
     public MessageChannel mqttDeviceEventsInboundChannel() {
         return new DirectChannel();
     }
@@ -89,24 +81,6 @@ public class MqttConfig {
     }
 
     @Bean
-    public MqttPahoMessageDrivenChannelAdapter mqttLightStatusInboundAdapter(
-        MqttPahoClientFactory clientFactory,
-        MqttProperties properties
-    ) {
-        MqttPahoMessageDrivenChannelAdapter adapter =
-            new MqttPahoMessageDrivenChannelAdapter(
-                properties.clientId() + "-light-status",
-                clientFactory,
-                LIGHT_STATUS_TOPIC
-            );
-
-        adapter.setQos(1);
-        adapter.setOutputChannel(mqttInboundChannel());
-
-        return adapter;
-    }
-
-    @Bean
     public MqttPahoMessageDrivenChannelAdapter mqttDeviceEventsInboundAdapter(
         MqttPahoClientFactory clientFactory,
         MqttProperties properties
@@ -122,23 +96,6 @@ public class MqttConfig {
         adapter.setOutputChannel(mqttDeviceEventsInboundChannel());
 
         return adapter;
-    }
-
-    @Bean
-    @ServiceActivator(inputChannel = "mqttInboundChannel")
-    public MessageHandler mqttLightStatusHandler() {
-        return message -> {
-            String topic = String.valueOf(
-                message.getHeaders().get(MqttHeaders.RECEIVED_TOPIC)
-            );
-            String lightState = String.valueOf(message.getPayload());
-
-            log.info(
-                "Received light status from topic [{}]: {}",
-                topic,
-                lightState
-            );
-        };
     }
 
     @Bean

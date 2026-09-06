@@ -1,7 +1,7 @@
 package com.sondm.iot.controller;
 
-import com.sondm.iot.config.LightCommand;
-import com.sondm.iot.dto.DeviceResponse;
+import com.sondm.iot.dto.IrCommandRequest;
+import com.sondm.iot.dto.IrCommandResponse;
 import com.sondm.iot.service.DeviceEventStreamService;
 import com.sondm.iot.service.DeviceService;
 import org.springframework.http.MediaType;
@@ -25,23 +25,12 @@ public class DeviceController {
         this.deviceEventStreamService = deviceEventStreamService;
     }
 
-    @PostMapping("/{deviceId}/light")
-    public ResponseEntity<DeviceResponse> controlLight(
-        @PathVariable String deviceId,
-        @RequestBody LightCommand request
-    ) {
-        DeviceResponse response =
-            deviceService.controlLight(
-                deviceId,
-                request.state()
-            );
-
-        return ResponseEntity.ok(response);
-    }
-
     @PostMapping("/{deviceId}/ir")
-    public ResponseEntity<DeviceResponse> controlTV(@PathVariable String deviceId) {
-        DeviceResponse response = deviceService.controlTV(deviceId);
+    public ResponseEntity<IrCommandResponse> controlTV(
+        @PathVariable String deviceId,
+        @RequestBody(required = false) IrCommandRequest request
+    ) {
+        IrCommandResponse response = deviceService.controlTV(deviceId, request);
         return ResponseEntity.ok(response);
     }
 
